@@ -1,40 +1,24 @@
 import styles from "./users.module.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    faAngleLeft,
-    faAngleRight,
-    faSearch,
-    faSortDown,
-} from "@fortawesome/free-solid-svg-icons";
 import { useCallback, useEffect, useState } from "react";
 import usePrivateHttp from "../../hooks/usePrivateHttp";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { User } from "../../models/user";
-import { BeatLoader } from "react-spinners";
-import SearchUserInput from "./SearchUserInput";
 import type { PaginationProps } from "antd";
 import Pagination from "antd/es/pagination";
 import type { ColumnType, ColumnsType } from "antd/es/table";
-import type { FilterConfirmProps } from "antd/es/table/interface";
-import { Input, Table, Button, Dropdown, Tag, Popconfirm } from "antd";
-import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
-import {
-    SearchOutlined,
-    CaretDownOutlined,
-    DeleteOutlined,
-    InfoCircleOutlined,
-} from "@ant-design/icons";
+import { Input, Table, Button } from "antd";
+import { customers } from "../../datas/Customers";
+
+import { SearchOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { Customer } from "../../models/Customer";
 const Users: React.FC<{}> = () => {
     const privateHttp = usePrivateHttp();
     const navigate = useNavigate();
     // states:
     const [isLoading, setIsLoading] = useState(false);
     const [search, setSearch] = useSearchParams();
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<Customer[]>(customers);
     const [totalUsers, setTotalUsers] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-
-    const [sortRole, setSortRole] = useState("");
 
     // by default set search params category=All and page = 1
     useEffect(() => {
@@ -42,7 +26,7 @@ const Users: React.FC<{}> = () => {
         setSearch(search, {
             replace: true,
         });
-    }, [currentPage]);
+    }, [currentPage, search, setSearch]);
 
     // change page with ant pagination
     const onChangePagination: PaginationProps["onChange"] = useCallback(
@@ -54,30 +38,31 @@ const Users: React.FC<{}> = () => {
     console.log(currentPage);
 
     // get users from database
-    useEffect(() => {
-        const getUsers = async () => {
-            setIsLoading(true);
-            try {
-                const res = await privateHttp.get("/user/get-users", {
-                    params: search || null,
-                });
+    // useEffect(() => {
+    //     const getUsers = async () => {
+    //         setIsLoading(true);
+    //         try {
+    //             const res = await privateHttp.get("/user/get-users", {
+    //                 params: search || null,
+    //             });
 
-                setIsLoading(false);
-                setUsers((prev) => res.data.users);
-                setTotalUsers(res.data.totalUsers);
-            } catch (error) {
-                console.log(error);
-            }
-        };
+    //             setIsLoading(false);
+    //             setUsers((prev) => res.data.users);
+    //             setTotalUsers(res.data.totalUsers);
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     };
 
-        getUsers();
-    }, [search]);
-    console.log(users);
+    //     getUsers();
+    // }, [search, privateHttp]);
 
     // Column type:
-    type DataIndex = keyof User;
-    const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<User> => ({
-        filterDropdown: ({}) => (
+    type DataIndex = keyof Customer;
+    const getColumnSearchProps = (
+        dataIndex: DataIndex
+    ): ColumnType<Customer> => ({
+        filterDropdown: () => (
             <div onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     placeholder={`Search ${dataIndex}`}
@@ -103,103 +88,37 @@ const Users: React.FC<{}> = () => {
     });
 
     // columns data
-    const columns: ColumnsType<User> = [
+    const columns: ColumnsType<Customer> = [
         {
             title: "ID",
-            dataIndex: "_id",
-            key: "_id",
+            dataIndex: "customer_id",
+            key: "customer_id",
             width: "28%",
-            ...getColumnSearchProps("_id"),
+            ...getColumnSearchProps("customer_id"),
         },
         {
             title: "User",
-            dataIndex: "userName",
-            key: "userName",
+            dataIndex: "name",
+            key: "name",
             width: "15%",
-            ...getColumnSearchProps("userName"),
+            ...getColumnSearchProps("name"),
         },
         {
-            title: "Email",
-            dataIndex: "email",
-            key: "email",
+            title: "Address",
+            dataIndex: "address",
+            key: "address",
             width: "25%",
 
-            ...getColumnSearchProps("email"),
+            ...getColumnSearchProps("address"),
         },
 
         {
             title: "Phone Number",
-            dataIndex: "phoneNumber",
-            key: "phoneNumber",
+            dataIndex: "phone_number",
+            key: "phone_number",
             width: "15%",
-            ...getColumnSearchProps("phoneNumber"),
+            ...getColumnSearchProps("phone_number"),
         },
-
-        {
-            title: "Role",
-            dataIndex: "roleId",
-            key: "roleId",
-            width: "10%",
-            render: (roleId) => {
-                return (
-                    <Tag
-                        color={`${
-                            (roleId.name === "admin" && "processing") ||
-                            (roleId.name === "user" && "success")
-                        }`}
-                    >
-                        {roleId.name}
-                    </Tag>
-                );
-            },
-            filterDropdown: ({}) => {
-                return (
-                    <div
-                        style={{
-                            padding: "4px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                        }}
-                        onKeyDown={(e) => e.stopPropagation()}
-                    >
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.delete("sortRole");
-                                setSearch(search, { replace: true });
-                            }}
-                        >
-                            Default
-                        </div>
-
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortRole", "admin");
-                                setSearch(search, { replace: true });
-                            }}
-                        >
-                            Admin
-                        </div>
-
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortRole", "user");
-                                setSearch(search, { replace: true });
-                            }}
-                        >
-                            User
-                        </div>
-                    </div>
-                );
-            },
-            filterIcon: () => {
-                return <CaretDownOutlined />;
-            },
-        },
-
         {
             title: "Actions",
             width: "20%",
@@ -212,11 +131,14 @@ const Users: React.FC<{}> = () => {
                             icon={<InfoCircleOutlined />}
                             onClick={() => {
                                 // setOpenDetailPopup(true);
-                                navigate("/admin/user-info/" + record._id, {
-                                    state: {
-                                        userInfo: record,
-                                    },
-                                });
+                                navigate(
+                                    "/admin/user-info/" + record.customer_id,
+                                    {
+                                        state: {
+                                            userInfo: record,
+                                        },
+                                    }
+                                );
                             }}
                         />
                     </div>

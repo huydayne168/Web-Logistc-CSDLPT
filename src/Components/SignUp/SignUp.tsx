@@ -52,7 +52,6 @@ const SignUp: React.FC<{}> = () => {
                 // if valid inputs and can send email (detail in backend) so I change this component to the verify code form:
                 setSignUpState("VERIFY_CODE_FORM");
             } else {
-                // after succeed verify code => go to login form to login:
                 navigate("/");
             }
         } catch (error: any) {

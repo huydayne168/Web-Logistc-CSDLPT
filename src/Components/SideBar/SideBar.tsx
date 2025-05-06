@@ -12,15 +12,14 @@ import {
     FundOutlined,
     UnorderedListOutlined,
     UserOutlined,
-    InboxOutlined,
-    DollarOutlined,
-    TagOutlined,
     LogoutOutlined,
-    ThunderboltOutlined,
-    CreditCardOutlined,
+    TruckOutlined,
+    OrderedListOutlined,
+    GatewayOutlined,
+    HomeOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import { Menu, Avatar, Button, Space } from "antd";
+import { Menu, Button, Space } from "antd";
 import Vouchers from "../Vouchers/Vouchers";
 function SideBar() {
     const navigate = useNavigate();
@@ -78,12 +77,11 @@ function SideBar() {
             "group"
         ),
         getItem("List", "list", <UnorderedListOutlined />, [
-            getItem("Users", "users", <UserOutlined />),
-            getItem("Products", "products", <InboxOutlined />),
-            getItem("Flash Sale", "flash-sales", <ThunderboltOutlined />),
-            getItem("Voucher", "vouchers", <CreditCardOutlined />),
-            getItem("Checkouts", "transactions", <DollarOutlined />),
-            getItem("Tags & Categories", "categories", <TagOutlined />),
+            getItem("Customers", "users", <UserOutlined />),
+            getItem("Shipments", "products", <TruckOutlined />),
+            getItem("Routes", "flash-sales", <GatewayOutlined />),
+            getItem("Station", "vouchers", <HomeOutlined />),
+            getItem("Orders", "transactions", <OrderedListOutlined />),
         ]),
         getItem("New", "new", <AppstoreAddOutlined />, [
             getItem("Add Product", "add-product"),

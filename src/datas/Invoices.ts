@@ -1,0 +1,48 @@
+import { Invoice } from "../models/Invoice";
+export const invoices: Invoice[] = [
+    {
+        invoice_id: "INV001",
+        order_id: "ORD001",
+        currency_id: "CUR001",
+        total_amount: 1500,
+        customs_fee: 100,
+        tax_amount: 200,
+        issue_date: new Date("2025-05-01"),
+    },
+    {
+        invoice_id: "INV002",
+        order_id: "ORD002",
+        currency_id: "CUR002",
+        total_amount: 2000,
+        customs_fee: 150,
+        tax_amount: 250,
+        issue_date: new Date("2025-04-21"),
+    },
+    {
+        invoice_id: "INV003",
+        order_id: "ORD003",
+        currency_id: "CUR001",
+        total_amount: 1800,
+        customs_fee: 120,
+        tax_amount: 180,
+        issue_date: new Date("2025-03-15"),
+    },
+    {
+        invoice_id: "INV004",
+        order_id: "ORD004",
+        currency_id: "CUR003",
+        total_amount: 2300,
+        customs_fee: 200,
+        tax_amount: 300,
+        issue_date: new Date("2025-04-25"),
+    },
+    {
+        invoice_id: "INV005",
+        order_id: "ORD005",
+        currency_id: "CUR002",
+        total_amount: 1750,
+        customs_fee: 130,
+        tax_amount: 220,
+        issue_date: new Date("2025-05-03"),
+    },
+];
