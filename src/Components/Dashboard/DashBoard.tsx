@@ -1,47 +1,96 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
+import RegionCardCustom from "./RegionCardCustom";
 import styles from "./dashboard.module.css";
 
-import DashboardHeader from "./DashboardHeader";
-import DashboardTable from "./DashboardTable";
-import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
-import { Checkout } from "../../models/checkout";
-import usePrivateHttp from "../../hooks/usePrivateHttp";
-import http from "../../utils/http";
-function DashBoard() {
-    const privateHttp = usePrivateHttp();
-    const currentUser = useAppSelector((state) => state.authentication);
-    const products = useAppSelector((state) => state.products);
-    const dispatch = useAppDispatch();
-    const [checkouts, setCheckouts] = useState<Checkout[]>([]);
+interface RegionData {
+    serverName: string;
+    linkName: string;
+    location: string;
+    id: string;
+}
 
-    // get latest checkouts
-    useEffect(() => {
-        const getCheckouts = async () => {
-            try {
-                const res = await privateHttp.get(
-                    "/api/checkout/get-checkouts",
-                    {
-                        params: {
-                            page: 1,
-                            sortDate: "true",
-                        },
-                    }
-                );
-                console.log(res);
-                setCheckouts(res.data.checkouts);
-            } catch (error) {
-                console.log(error);
-            }
-        };
+export default function CustomRegionPage() {
+    const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
-        getCheckouts();
-    }, []);
+    const regions: RegionData[] = [
+        {
+            serverName: "QUANGHUNG2024\\GLOBAL_HUB",
+            linkName: "LINK_GLOBAL",
+            location: "MÁY CHỦ",
+            id: "global",
+        },
+        {
+            serverName: "DESKTOP-IM7KUML\\EU_SERVER",
+            linkName: "LINK_EU",
+            location: "EU",
+            id: "eu",
+        },
+        {
+            serverName: "DESKTOP-K4REU6F\\AU_SERVER",
+            linkName: "LINK_AU",
+            location: "AU",
+            id: "au",
+        },
+        {
+            serverName: "HUYDN\\AS_SERVER",
+            linkName: "LINK_AS",
+            location: "AS",
+            id: "as",
+        },
+        {
+            serverName: "ADMIN\\AF_SERVER",
+            linkName: "LINK_AF",
+            location: "AF",
+            id: "af",
+        },
+        {
+            serverName: "ADMIN\\ME_SERVER",
+            linkName: "LINK_ME",
+            location: "ME",
+            id: "me",
+        },
+        {
+            serverName: "ADMIN\\SA_SERVER",
+            linkName: "LINK_SA",
+            location: "SA",
+            id: "sa",
+        },
+        {
+            serverName: "ADMIN\\NA_SERVER",
+            linkName: "LINK_NA",
+            location: "NA",
+            id: "na",
+        },
+    ];
+
+    const handleSelectRegion = (location: string) => {
+        setSelectedRegion(location);
+    };
+
     return (
-        <div className={styles.dashboard}>
-            <DashboardHeader />
-            <DashboardTable checkouts={checkouts} />
+        <div className={styles["container"]}>
+            <h1 className={styles["title"]}>Chọn Region</h1>
+
+            <div className={styles["region-grid"]}>
+                {regions.map((region) => (
+                    <RegionCardCustom
+                        key={region.location}
+                        serverName={region.serverName}
+                        linkName={region.linkName}
+                        location={region.location}
+                        isSelected={selectedRegion === region.location}
+                        onSelect={() => handleSelectRegion(region.location)}
+                    />
+                ))}
+            </div>
+
+            {selectedRegion && (
+                <div className={styles["selected-message"]}>
+                    <p>
+                        Đã chọn region: <strong>{selectedRegion}</strong>
+                    </p>
+                </div>
+            )}
         </div>
     );
 }
-
-export default DashBoard;

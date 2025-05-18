@@ -23,14 +23,6 @@ function App() {
     const router = createBrowserRouter([
         {
             path: "",
-            element: <Login />,
-        },
-        {
-            path: "sign-up",
-            element: <SignUp />,
-        },
-        {
-            path: "/admin/",
             element: <Root />,
             children: [
                 {
@@ -38,7 +30,7 @@ function App() {
                     element: <ErrorPage />,
                 },
                 {
-                    path: "dash-board",
+                    path: "/",
                     element: <DashBoard />,
                     index: true,
                 },
@@ -51,7 +43,7 @@ function App() {
                     element: <UserInfo />,
                 },
                 {
-                    path: "products",
+                    path: "shipments",
                     element: <Products />,
                 },
                 {

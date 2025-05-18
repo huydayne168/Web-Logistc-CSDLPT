@@ -2,13 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import styles from "./products.module.css";
 
 import http from "../../utils/http";
-import type { Product } from "../../models/product";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
 import { navigationActions } from "../../store/store";
 import { productsAction } from "../../store/store";
 import { loadingActions } from "../../store/store";
-import { BeatLoader } from "react-spinners";
 import usePrivateHttp from "../../hooks/usePrivateHttp";
 // ant design:
 import type { ColumnType, ColumnsType } from "antd/es/table";
@@ -19,12 +17,13 @@ import {
     InfoCircleOutlined,
     DeleteOutlined,
 } from "@ant-design/icons";
-import { Input, Table, Button, Dropdown, Tag, Alert } from "antd";
+import { Input, Table, Button, Alert } from "antd";
 import type { PaginationProps } from "antd";
 import Pagination from "antd/es/pagination";
 import { AutoComplete, Popconfirm } from "antd";
 import { Category } from "../../models/category";
-import Categories from "../TagsAndCategories/Categories";
+import { ShipmentDetails } from "../../models/ShipmentDetail";
+import { shipmentDetails } from "../../datas/ShipmentDetails";
 // import DeletePopup from "../DeletePopup/DeletePopup";
 const Products: React.FC = () => {
     const navigate = useNavigate();
@@ -34,7 +33,8 @@ const Products: React.FC = () => {
     const isLoading = useAppSelector((state) => state.loading);
 
     // get products from store:
-    const products = useAppSelector((state) => state.products);
+    // const products = useAppSelector((state) => state.products);
+    const shipments = shipmentDetails;
     // categories list:
     const [categoriesList, setCategoriesList] = useState<Category[]>([]);
 
@@ -61,8 +61,8 @@ const Products: React.FC = () => {
             setCategoriesList(res.data);
         };
 
-        fetchCategories();
-    }, []);
+        // fetchCategories();
+    }, [privateHttp]);
 
     // category drop down options:
     const categoriesDropdownOptions = [
@@ -79,7 +79,6 @@ const Products: React.FC = () => {
         },
         []
     );
-    console.log(currentPage);
 
     // by default set search params category=All and page = 1
     useEffect(() => {
@@ -88,7 +87,7 @@ const Products: React.FC = () => {
         setSearch(search, {
             replace: true,
         });
-    }, [currentPage]);
+    }, [currentPage, setSearch, search]);
 
     // get products from database:
     useEffect(() => {
@@ -116,42 +115,40 @@ const Products: React.FC = () => {
                 console.log(error);
             }
         };
-        getAllProducts();
-    }, [search, isDeleting]);
+        // getAllProducts();
+    }, [search, isDeleting, dispatch]);
 
-    // delete product:
+    // delete Shipment handler:
     const deleteHandler = useCallback(
-        async (product: Product) => {
-            dispatch(loadingActions.setLoading(true));
-            try {
-                const res = await privateHttp.delete(
-                    "/api/product/delete-product",
-                    {
-                        params: {
-                            _id: product._id,
-                        },
-                    }
-                );
-
-                dispatch(productsAction.deleteProduct(product._id));
-                dispatch(loadingActions.setLoading(false));
-                setIsDeleting((pre) => !pre);
-            } catch (error) {
-                console.log(error);
-                setDeleteFailState(true);
-                dispatch(loadingActions.setLoading(false));
-            }
+        async (product: ShipmentDetails) => {
+            // dispatch(loadingActions.setLoading(true));
+            // try {
+            //     const res = await privateHttp.delete(
+            //         "/api/product/delete-product",
+            //         {
+            //             params: {
+            //                 _id: product._id,
+            //             },
+            //         }
+            //     );
+            //     dispatch(productsAction.deleteProduct(product._id));
+            //     dispatch(loadingActions.setLoading(false));
+            //     setIsDeleting((pre) => !pre);
+            // } catch (error) {
+            //     console.log(error);
+            //     setDeleteFailState(true);
+            //     dispatch(loadingActions.setLoading(false));
+            // }
         },
         [dispatch, privateHttp]
     );
 
     // ant column:
-    type DataIndex = keyof Product;
-    type Products = [{ product: Product; quantity: number }];
+    type DataIndex = keyof ShipmentDetails;
     const getColumnSearchProps = (
         dataIndex: DataIndex
-    ): ColumnType<Product> => ({
-        filterDropdown: ({}) => (
+    ): ColumnType<ShipmentDetails> => ({
+        filterDropdown: () => (
             <div onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     placeholder={`Search ${dataIndex}`}
@@ -176,109 +173,27 @@ const Products: React.FC = () => {
         ),
     });
 
-    const columns: ColumnsType<Product> = [
-        {
-            title: "Rate",
-            dataIndex: "rate",
-            key: "rate",
-            width: "5%",
-            render: (rate) => {
-                return <span>{rate} stars</span>;
-            },
-            filterDropdown: ({}) => {
-                return (
-                    <div
-                        style={{
-                            padding: "4px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                        }}
-                        onKeyDown={(e) => e.stopPropagation()}
-                    >
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.delete("sortRate");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Default
-                        </div>
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortRate", "true");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            High Rate
-                        </div>
-
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortRate", "false");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Low Rate
-                        </div>
-                    </div>
-                );
-            },
-            filterIcon: () => {
-                return <CaretDownOutlined />;
-            },
-        },
+    const columns: ColumnsType<ShipmentDetails> = [
         {
             title: "Id",
-            dataIndex: "_id",
-            key: "_id",
+            dataIndex: "shipment_id",
+            key: "shipment_id",
             width: "15%",
-            ...getColumnSearchProps("_id"),
+            ...getColumnSearchProps("shipment_id"),
         },
         {
             title: "Name",
-            dataIndex: "name",
-            key: "name",
+            dataIndex: "order_id",
+            key: "order_id",
             width: "20%",
-            ...getColumnSearchProps("name"),
-            render: (name, record) => {
-                return (
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
-                        }}
-                    >
-                        <img
-                            src={record.image}
-                            alt={record._id}
-                            style={{
-                                width: "50px",
-                                height: "50px",
-                                objectFit: "cover",
-                            }}
-                        />
-                        <div>{name}</div>
-                    </div>
-                );
-            },
+            ...getColumnSearchProps("order_id"),
         },
         {
-            title: "Description",
-            dataIndex: "shortDescription",
-            key: "shortDescription",
+            title: "Vehicle",
+            dataIndex: "vehicle_id",
+            key: "vehicle_id",
             width: "20%",
-
+            ...getColumnSearchProps("order_id"),
             render: (shortDescription) => {
                 return (
                     <div className={styles["product-description"]}>
@@ -289,111 +204,55 @@ const Products: React.FC = () => {
         },
 
         {
-            title: "Price",
-            dataIndex: "price",
-            key: "price",
+            title: "Route",
+            dataIndex: "route_id",
+            key: "route_id",
             width: "5%",
-            filterDropdown: ({}) => {
-                return (
-                    <div
-                        style={{
-                            padding: "4px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                        }}
-                        onKeyDown={(e) => e.stopPropagation()}
-                    >
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.delete("sortHighPrice");
-                                search.delete("sortLowPrice");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Default
-                        </div>
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortHighPrice", "true");
-                                search.delete("sortRate");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            High Price
-                        </div>
-
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortLowPrice", "true");
-                                search.delete("sortRate");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Low Price
-                        </div>
-                    </div>
-                );
-            },
-            filterIcon: () => {
-                return <CaretDownOutlined />;
-            },
-            render: (price) => {
-                return <span>${price}</span>;
-            },
+            ...getColumnSearchProps("route_id"),
         },
 
-        {
-            title: "Category",
-            dataIndex: "category",
-            key: "category",
-            width: "10%",
-            render: (category) => {
-                return <span>{category.name}</span>;
-            },
-            filterDropdown: ({}) => {
-                return (
-                    <AutoComplete
-                        style={{
-                            width: "100%",
-                        }}
-                        placeholder={"search category here"}
-                        options={categoriesDropdownOptions}
-                        filterOption={(inputValue, option) =>
-                            option!.value
-                                .toUpperCase()
-                                .indexOf(inputValue.toUpperCase()) !== -1
-                        }
-                        onSelect={(value, option) => {
-                            console.log(option);
-                            if (value === "All") {
-                                search.delete("category");
-                            } else {
-                                const cateId = categoriesList.filter(
-                                    (c) => c.name === value
-                                )[0]._id;
-                                search.set("category", cateId);
-                            }
-                            setSearch(search, {
-                                replace: true,
-                            });
-                        }}
-                    />
-                );
-            },
-            filterIcon: () => {
-                return <CaretDownOutlined />;
-            },
-        },
+        // {
+        //     title: "Category",
+        //     dataIndex: "category",
+        //     key: "category",
+        //     width: "10%",
+        //     render: (category) => {
+        //         return <span>{category.name}</span>;
+        //     },
+        //     filterDropdown: () => {
+        //         return (
+        //             <AutoComplete
+        //                 style={{
+        //                     width: "100%",
+        //                 }}
+        //                 placeholder={"search category here"}
+        //                 options={categoriesDropdownOptions}
+        //                 filterOption={(inputValue, option) =>
+        //                     option!.value
+        //                         .toUpperCase()
+        //                         .indexOf(inputValue.toUpperCase()) !== -1
+        //                 }
+        //                 onSelect={(value, option) => {
+        //                     console.log(option);
+        //                     if (value === "All") {
+        //                         search.delete("category");
+        //                     } else {
+        //                         const cateId = categoriesList.filter(
+        //                             (c) => c.name === value
+        //                         )[0]._id;
+        //                         search.set("category", cateId);
+        //                     }
+        //                     setSearch(search, {
+        //                         replace: true,
+        //                     });
+        //                 }}
+        //             />
+        //         );
+        //     },
+        //     filterIcon: () => {
+        //         return <CaretDownOutlined />;
+        //     },
+        // },
 
         {
             title: "Actions",
@@ -404,7 +263,8 @@ const Products: React.FC = () => {
                         <Button
                             onClick={(e) =>
                                 navigate(
-                                    "/admin/product-detail" + `/${record._id}`,
+                                    "/admin/product-detail" +
+                                        `/${record.shipment_id}`,
                                     {
                                         state: {
                                             product: record,
@@ -418,7 +278,8 @@ const Products: React.FC = () => {
                         <Button
                             onClick={(e) =>
                                 navigate(
-                                    "/admin/edit-product" + `/${record._id}`,
+                                    "/admin/edit-product" +
+                                        `/${record.shipment_id}`,
                                     {
                                         state: {
                                             product: record,
@@ -482,7 +343,7 @@ const Products: React.FC = () => {
 
                 <Table
                     columns={columns}
-                    dataSource={products}
+                    dataSource={shipments}
                     pagination={false}
                     loading={isLoading}
                 />

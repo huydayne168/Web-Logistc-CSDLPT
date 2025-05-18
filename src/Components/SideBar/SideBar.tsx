@@ -78,7 +78,7 @@ function SideBar() {
         ),
         getItem("List", "list", <UnorderedListOutlined />, [
             getItem("Customers", "users", <UserOutlined />),
-            getItem("Shipments", "products", <TruckOutlined />),
+            getItem("Shipments", "shipments", <TruckOutlined />),
             getItem("Routes", "flash-sales", <GatewayOutlined />),
             getItem("Station", "vouchers", <HomeOutlined />),
             getItem("Orders", "transactions", <OrderedListOutlined />),
