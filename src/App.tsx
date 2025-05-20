@@ -1,24 +1,23 @@
 import React from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Login from "./Components/Login/Login";
 import Root from "./Components/Root/Root";
 import DashBoard from "./Components/Dashboard/DashBoard";
-import Products from "./Components/Products/Products";
+import Products from "./Components/Shipments/Products";
 import Transactions from "./Components/Transactions/Transactions";
 import AddProduct from "./Components/AddProduct/AddProduct";
 import Users from "./Components/users/Users";
-import SignUp from "./Components/SignUp/SignUp";
 import ProductDetail from "./Components/ProductDetail/ProductDetail";
 import EditProduct from "./Components/EditProduct/EditProduct";
 import TagsAndCategories from "./Components/TagsAndCategories/TagsAndCategories";
 import ErrorPage from "./Components/error/ErrorPage";
 import UserInfo from "./Components/users/UserInfo";
-import AddFlashSale from "./Components/AddFlashSale/AddFlashSale";
 import FlashSales from "./Components/FlashSales/FlashSales";
-import AddVoucher from "./Components/AddVoucher/AddVoucher";
 import Vouchers from "./Components/Vouchers/Vouchers";
+import Stations from "./Components/Station/Station";
+import Customers from "./Components/Customers/Customers";
+import AddCustomer from "./Components/AddCustomer/AddCustomer";
+import AddRoute from "./Components/AddRoute/AddRoute";
 function App() {
     const router = createBrowserRouter([
         {
@@ -35,6 +34,10 @@ function App() {
                     index: true,
                 },
                 {
+                    path: "customers",
+                    element: <Customers />,
+                },
+                {
                     path: "users",
                     element: <Users />,
                 },
@@ -47,10 +50,13 @@ function App() {
                     element: <Products />,
                 },
                 {
-                    path: "transactions",
+                    path: "routes",
                     element: <Transactions />,
                 },
-
+                {
+                    path: "stations",
+                    element: <Stations />,
+                },
                 {
                     path: "tagsCategories/:tagsCategories",
                     element: <TagsAndCategories />,
@@ -74,8 +80,8 @@ function App() {
                 },
 
                 {
-                    path: "add-flashSale",
-                    element: <AddFlashSale />,
+                    path: "add-customer",
+                    element: <AddCustomer />,
                 },
 
                 {
@@ -84,8 +90,8 @@ function App() {
                 },
 
                 {
-                    path: "add-voucher",
-                    element: <AddVoucher />,
+                    path: "add-route",
+                    element: <AddRoute />,
                 },
             ],
         },

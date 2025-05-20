@@ -1,70 +1,18 @@
 import { useState } from "react";
 import RegionCardCustom from "./RegionCardCustom";
 import styles from "./dashboard.module.css";
-
-interface RegionData {
-    serverName: string;
-    linkName: string;
-    location: string;
-    id: string;
-}
+import regions from "../../datas/Regions";
+import { useAppDispatch } from "../../hooks/useStore";
+import { regionActions } from "../../store/store";
+import RegionData from "../../models/Region";
 
 export default function CustomRegionPage() {
     const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+    const dispatch = useAppDispatch();
 
-    const regions: RegionData[] = [
-        {
-            serverName: "QUANGHUNG2024\\GLOBAL_HUB",
-            linkName: "LINK_GLOBAL",
-            location: "MÁY CHỦ",
-            id: "global",
-        },
-        {
-            serverName: "DESKTOP-IM7KUML\\EU_SERVER",
-            linkName: "LINK_EU",
-            location: "EU",
-            id: "eu",
-        },
-        {
-            serverName: "DESKTOP-K4REU6F\\AU_SERVER",
-            linkName: "LINK_AU",
-            location: "AU",
-            id: "au",
-        },
-        {
-            serverName: "HUYDN\\AS_SERVER",
-            linkName: "LINK_AS",
-            location: "AS",
-            id: "as",
-        },
-        {
-            serverName: "ADMIN\\AF_SERVER",
-            linkName: "LINK_AF",
-            location: "AF",
-            id: "af",
-        },
-        {
-            serverName: "ADMIN\\ME_SERVER",
-            linkName: "LINK_ME",
-            location: "ME",
-            id: "me",
-        },
-        {
-            serverName: "ADMIN\\SA_SERVER",
-            linkName: "LINK_SA",
-            location: "SA",
-            id: "sa",
-        },
-        {
-            serverName: "ADMIN\\NA_SERVER",
-            linkName: "LINK_NA",
-            location: "NA",
-            id: "na",
-        },
-    ];
-
-    const handleSelectRegion = (location: string) => {
-        setSelectedRegion(location);
+    const handleSelectRegion = (region: RegionData) => {
+        setSelectedRegion(region.location);
+        dispatch(regionActions.setRegionState(region));
     };
 
     return (
@@ -79,7 +27,7 @@ export default function CustomRegionPage() {
                         linkName={region.linkName}
                         location={region.location}
                         isSelected={selectedRegion === region.location}
-                        onSelect={() => handleSelectRegion(region.location)}
+                        onSelect={() => handleSelectRegion(region)}
                     />
                 ))}
             </div>

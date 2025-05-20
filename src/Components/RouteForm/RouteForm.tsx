@@ -9,7 +9,7 @@ import { Alert } from "antd";
 import regions from "../../datas/Regions";
 import { useAppSelector } from "../../hooks/useStore";
 
-const ProductForm: React.FC<{
+const RouteForm: React.FC<{
     errMess?: boolean;
     product?: Product;
     handleProductFn: Function;
@@ -20,14 +20,17 @@ const ProductForm: React.FC<{
     const [name, setName] = useState(product?.name || "");
     const currentRegion = useAppSelector((state) => state.region.id);
     const [id, setId] = useState("");
-    const [address, setAddress] = useState("");
     const [otherRegion, setOtherRegion] = useState<string>(currentRegion);
-    const [country, setCountry] = useState<string>("");
+    const [stationFrom, setStationFrom] = useState<string>("");
+    const [stationTo, setStationTo] = useState<string>("");
+    const [distance, setDistance] = useState<string>("");
+    const [estimateTime, setEstimateTime] = useState<string>("");
+    const [type, setType] = useState<string>("");
 
     return (
         <div className={styles.productFormContainer}>
             <div className={styles.heading}>
-                {product ? "Edit Product" : "Add New Station"}
+                {product ? "Edit Product" : "Add Route"}
                 {isLoading ? <BeatLoader /> : ""}
             </div>
             <div className={styles["product-form"]}>
@@ -45,26 +48,62 @@ const ProductForm: React.FC<{
                         />
                     </div>
                     <div className={styles.controls}>
-                        <label htmlFor="name">Name</label>
+                        <label htmlFor="name">Station From</label>
                         <input
                             type="text"
-                            name="name"
-                            id="name"
-                            value={name}
+                            name="station_from"
+                            id="station_from"
+                            value={stationFrom}
                             onChange={(e) => {
-                                setName(e.target.value);
+                                setStationFrom(e.target.value);
                             }}
                         />
                     </div>
                     <div className={styles.controls}>
-                        <label htmlFor="name">Country</label>
+                        <label htmlFor="name">Station To</label>
                         <input
                             type="text"
-                            name="country"
-                            id="country"
-                            value={country}
+                            name="station_to"
+                            id="station_to"
+                            value={stationTo}
                             onChange={(e) => {
-                                setCountry(e.target.value);
+                                setStationTo(e.target.value);
+                            }}
+                        />
+                    </div>
+                    <div className={styles.controls}>
+                        <label htmlFor="name">Distance</label>
+                        <input
+                            type="number"
+                            name="distance"
+                            id="distance"
+                            value={distance}
+                            onChange={(e) => {
+                                setDistance(e.target.value);
+                            }}
+                        />
+                    </div>
+                    <div className={styles.controls}>
+                        <label htmlFor="name">Estimate time</label>
+                        <input
+                            type="number"
+                            name="estimate_time"
+                            id="estimate_time"
+                            value={estimateTime}
+                            onChange={(e) => {
+                                setEstimateTime(e.target.value);
+                            }}
+                        />
+                    </div>
+                    <div className={styles.controls}>
+                        <label htmlFor="name">Type</label>
+                        <input
+                            type="text"
+                            name="type"
+                            id="type"
+                            value={type}
+                            onChange={(e) => {
+                                setType(e.target.value);
                             }}
                         />
                     </div>
@@ -106,35 +145,26 @@ const ProductForm: React.FC<{
                                 })}
                         </select>
                     </div>
-                    <div className={styles.controls}>
-                        <label htmlFor="price">Address</label>
-                        <input
-                            type="text"
-                            name="address"
-                            id="address"
-                            min={0}
-                            value={address}
-                            onChange={(e) => {
-                                setAddress(e.target.value);
-                            }}
-                        />
-                    </div>
-
                     <button
                         className={`${styles.sendBtn} btn btn-success btn-lg`}
                         onClick={(e) => {
                             e.preventDefault();
                             console.log({
-                                station_id: id,
-                                station_name: name,
-                                address,
-                                country_id: otherRegion,
+                                route_id: id,
+                                station_from: stationFrom,
+                                station_to: stationTo,
+                                distance,
+                                estimated_time: estimateTime,
+                                type,
+                                otherRegion,
                             });
                             handleProductFn({
-                                station_id: id,
-                                station_name: name,
-                                address,
-                                country_id: country.trim().toUpperCase(),
+                                route_id: id,
+                                station_from: stationFrom,
+                                station_to: stationTo,
+                                distance,
+                                estimated_time: estimateTime,
+                                type,
                                 otherRegion,
                             });
                         }}
@@ -147,4 +177,4 @@ const ProductForm: React.FC<{
     );
 };
 
-export default ProductForm;
+export default RouteForm;

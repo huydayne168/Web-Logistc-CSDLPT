@@ -1,82 +1,100 @@
 import React, { useState, useEffect, useCallback } from "react";
-import styles from "./transaction.module.css";
-import usePrivateHttp from "../../hooks/usePrivateHttp";
-import { useSearchParams } from "react-router-dom";
-import type { PaginationProps } from "antd";
-import Pagination from "antd/es/pagination";
-import type { ColumnType, ColumnsType } from "antd/es/table";
-import { Input, Table, Button, Dropdown, Tag, Popconfirm } from "antd";
+import styles from "./products.module.css";
+
+import http from "../../utils/http";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
+import { navigationActions } from "../../store/store";
+import { productsAction } from "../../store/store";
+import { loadingActions } from "../../store/store";
+import usePrivateHttp from "../../hooks/usePrivateHttp";
+// ant design:
+import type { ColumnType, ColumnsType } from "antd/es/table";
 import {
     SearchOutlined,
     CaretDownOutlined,
-    DeleteOutlined,
+    EditOutlined,
     InfoCircleOutlined,
+    DeleteOutlined,
 } from "@ant-design/icons";
-import { checkoutsAction, loadingActions } from "../../store/store";
-import { Checkout } from "../../models/checkout";
-import { Product } from "../../models/product";
-import type { MenuProps } from "antd/es/menu";
-import TransactionDetail from "./TransactionDetail";
-import http from "../../utils/http";
-import { Route } from "../../models/Route";
+import { Input, Table, Button, Alert } from "antd";
+import type { PaginationProps } from "antd";
+import Pagination from "antd/es/pagination";
+import { AutoComplete, Popconfirm } from "antd";
+import { Category } from "../../models/category";
+import { ShipmentDetails } from "../../models/ShipmentDetail";
+import { shipmentDetails } from "../../datas/ShipmentDetails";
 import regions from "../../datas/Regions";
-function Transactions() {
-    const checkouts = useAppSelector((state) => state.checkouts);
+import { current } from "@reduxjs/toolkit";
+// import DeletePopup from "../DeletePopup/DeletePopup";
+const Products: React.FC = () => {
+    const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalCheckouts, setTotalCheckouts] = useState(0);
-    const [selectCheckout, setSelectCheckout] = useState<Route | null>(null);
-    const [openDetailPopup, setOpenDetailPopup] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const isLoading = useAppSelector((state) => state.loading);
-    const [search, setSearch] = useSearchParams();
     const privateHttp = usePrivateHttp();
-    const [routes, setRoutes] = useState<Route[]>([]);
-    const currentRegion = useAppSelector((state) => state.region.id);
-    const [otherRegion, setOtherRegion] = useState<string>("");
+    // isLoading state:
+    const isLoading = useAppSelector((state) => state.loading);
 
-    // get all routes here:
+    const currentRegion = useAppSelector((state) => state.region.id);
+
+    const [shipments, setShipments] = useState<ShipmentDetails[]>([]);
+
+    // search params:
+    const [search, setSearch] = useSearchParams();
+
+    // set page pagination:
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalProducts, setTotalProducts] = useState(0);
+
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [otherRegion, setOtherRegion] = useState<string>(currentRegion);
+    // change page with ant pagination
+    const onChangePagination: PaginationProps["onChange"] = useCallback(
+        (page: number) => {
+            setCurrentPage(page);
+        },
+        []
+    );
+
+    // get products from database:
     useEffect(() => {
-        const getCheckouts = async () => {
+        const getAllShipments = async () => {
             dispatch(loadingActions.setLoading(true));
             try {
                 const res = await http.get(
-                    `/${currentRegion}/get_tables/route`
+                    `/${currentRegion}/get_tables/shipment_details`
                 );
                 console.log(res.data.recordset);
-                setRoutes(res.data.recordset);
+                setShipments((prev) => res.data.recordset);
                 dispatch(loadingActions.setLoading(false));
             } catch (error) {
                 console.log(error);
             }
         };
+        getAllShipments();
+    }, [dispatch, currentRegion]);
 
-        getCheckouts();
-    }, [search, isDeleting]);
-
-    const getRouteFromOtherRegions = async (region: string) => {
+    const getShipmentFromOtherRegions = async (region: string) => {
         dispatch(loadingActions.setLoading(true));
         try {
             const res = await http.get(
-                `/${currentRegion}/${region}/get_tables/route`
+                `/${currentRegion}/${region}/get_tables/shipment_details`
             );
             console.log(res.data.recordset);
             dispatch(loadingActions.setLoading(false));
-            setRoutes((prev) => res.data.recordset);
+            setShipments((prev) => res.data.recordset);
             setOtherRegion(region);
         } catch (error) {
             console.log(error);
         }
     };
 
-    // delete checkout handler:
+    // delete Shipment handler:
     const deleteHandler = useCallback(
-        async (route: Route) => {
+        async (shipment: ShipmentDetails) => {
             dispatch(loadingActions.setLoading(true));
             try {
                 const res = await http.delete(
-                    `/${currentRegion}/delete_table/route/${route.route_id}`
+                    `/${currentRegion}/delete_table/shipment_details/${shipment.shipment_id}`
                 );
                 dispatch(loadingActions.setLoading(false));
                 setIsDeleting((pre) => !pre);
@@ -87,11 +105,12 @@ function Transactions() {
         [dispatch, currentRegion]
     );
 
-    // Column type:
-    type DataIndex = keyof Route;
-    type Products = [{ product: Product; quantity: number }];
-    const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Route> => ({
-        filterDropdown: ({}) => (
+    // ant column:
+    type DataIndex = keyof ShipmentDetails;
+    const getColumnSearchProps = (
+        dataIndex: DataIndex
+    ): ColumnType<ShipmentDetails> => ({
+        filterDropdown: () => (
             <div onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     placeholder={`Search ${dataIndex}`}
@@ -116,59 +135,50 @@ function Transactions() {
         ),
     });
 
-    // columns data
-    const columns: ColumnsType<Route> = [
+    const columns: ColumnsType<ShipmentDetails> = [
         {
-            title: "ID",
+            title: "Id",
+            dataIndex: "shipment_id",
+            key: "shipment_id",
+            width: "15%",
+            ...getColumnSearchProps("shipment_id"),
+        },
+        {
+            title: "Name",
+            dataIndex: "order_id",
+            key: "order_id",
+            width: "20%",
+            ...getColumnSearchProps("order_id"),
+        },
+        {
+            title: "Vehicle",
+            dataIndex: "vehicle_id",
+            key: "vehicle_id",
+            width: "20%",
+            ...getColumnSearchProps("order_id"),
+            render: (shortDescription) => {
+                return (
+                    <div className={styles["product-description"]}>
+                        {shortDescription}
+                    </div>
+                );
+            },
+        },
+
+        {
+            title: "Route",
             dataIndex: "route_id",
             key: "route_id",
-            width: "15%",
-        },
-        {
-            title: "From",
-            dataIndex: "station_from",
-            key: "station_from",
-            width: "15%",
-            ...getColumnSearchProps("station_from"),
-        },
-        {
-            title: "To",
-            dataIndex: "station_to",
-            key: "station_to",
-            width: "25%",
-            ...getColumnSearchProps("station_to"),
-        },
-
-        {
-            title: "Distance",
-            dataIndex: "distance",
-            key: "distance",
-            width: "15%",
-            ...getColumnSearchProps("distance"),
-        },
-
-        {
-            title: "Type",
-            dataIndex: "type",
-            key: "type",
-            width: "10%",
+            width: "5%",
+            ...getColumnSearchProps("route_id"),
         },
 
         {
             title: "Actions",
-            width: "20%",
-            dataIndex: "actions",
-            key: "actions",
+            width: "10%",
             render: (_, record) => {
                 return (
                     <div style={{ display: "flex", gap: "4px" }}>
-                        <Button
-                            icon={<InfoCircleOutlined />}
-                            onClick={() => {
-                                setSelectCheckout(record);
-                                setOpenDetailPopup(true);
-                            }}
-                        />
                         <Popconfirm
                             title="Delete"
                             description="Are you sure to delete this product?"
@@ -190,17 +200,15 @@ function Transactions() {
         },
     ];
 
-    const closePopup = useCallback(() => {
-        setOpenDetailPopup(false);
-    }, []);
+    // Return tsx:
     return (
         <div className="tableWrapper">
             <div className={styles.heading}>
-                <h2>Routes List</h2>
+                <h2>Shipment Details List</h2>
                 <select
                     onChange={(e) => {
                         setOtherRegion(e.target.value);
-                        getRouteFromOtherRegions(e.target.value);
+                        getShipmentFromOtherRegions(e.target.value);
                     }}
                     defaultValue={currentRegion}
                 >
@@ -220,18 +228,22 @@ function Transactions() {
             <div className="tableContent">
                 <Table
                     columns={columns}
-                    dataSource={routes}
+                    dataSource={shipments}
                     pagination={false}
                     loading={isLoading}
                 />
-                <TransactionDetail
-                    open={openDetailPopup}
-                    checkout={[selectCheckout]}
-                    closePopup={closePopup}
-                />
+
+                <div className={styles["pagination"]}>
+                    <Pagination
+                        current={currentPage}
+                        onChange={onChangePagination}
+                        total={totalProducts}
+                        pageSize={5}
+                    />
+                </div>
             </div>
         </div>
     );
-}
+};
 
-export default Transactions;
+export default Products;

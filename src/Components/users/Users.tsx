@@ -1,24 +1,28 @@
 import styles from "./users.module.css";
 import { useCallback, useEffect, useState } from "react";
-import usePrivateHttp from "../../hooks/usePrivateHttp";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { PaginationProps } from "antd";
 import Pagination from "antd/es/pagination";
 import type { ColumnType, ColumnsType } from "antd/es/table";
 import { Input, Table, Button } from "antd";
-import { customers } from "../../datas/Customers";
 
 import { SearchOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import { Customer } from "../../models/Customer";
+import { Customs } from "../../models/Custom";
+import http from "../../utils/http";
+import { useAppSelector } from "../../hooks/useStore";
+import regions from "../../datas/Regions";
 const Users: React.FC<{}> = () => {
-    const privateHttp = usePrivateHttp();
     const navigate = useNavigate();
     // states:
     const [isLoading, setIsLoading] = useState(false);
     const [search, setSearch] = useSearchParams();
-    const [users, setUsers] = useState<Customer[]>(customers);
+    const [users, setUsers] = useState<Customs[]>([]);
     const [totalUsers, setTotalUsers] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+
+    const [otherRegion, setOtherRegion] = useState<string>("");
+
+    const currentRegion = useAppSelector((state) => state.region.id);
 
     // by default set search params category=All and page = 1
     useEffect(() => {
@@ -37,31 +41,48 @@ const Users: React.FC<{}> = () => {
     );
     console.log(currentPage);
 
-    // get users from database
-    // useEffect(() => {
-    //     const getUsers = async () => {
-    //         setIsLoading(true);
-    //         try {
-    //             const res = await privateHttp.get("/user/get-users", {
-    //                 params: search || null,
-    //             });
+    //get users from database
+    useEffect(() => {
+        const getUsers = async () => {
+            setIsLoading(true);
+            try {
+                const res = await http.get(
+                    `${currentRegion}/get_tables/customs`
+                );
+                console.log(res.data.recordset);
+                setIsLoading(false);
+                setUsers((prev) => res.data.recordset);
+                setTotalUsers(res.data.totalUsers);
+            } catch (error) {
+                console.log(error);
+            }
+        };
 
-    //             setIsLoading(false);
-    //             setUsers((prev) => res.data.users);
-    //             setTotalUsers(res.data.totalUsers);
-    //         } catch (error) {
-    //             console.log(error);
-    //         }
-    //     };
+        getUsers();
+    }, [search]);
 
-    //     getUsers();
-    // }, [search, privateHttp]);
+    // get customs from other regions:
+    const getCustomsFromOtherRegions = async (region: string) => {
+        setIsLoading(true);
+        try {
+            const res = await http.get(
+                `/${currentRegion}/${region}/get_tables/customs`
+            );
+            console.log(res.data.recordset);
+            setIsLoading(false);
+            setUsers((prev) => res.data.recordset);
+            setTotalUsers(res.data.totalUsers);
+            setOtherRegion(region);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     // Column type:
-    type DataIndex = keyof Customer;
+    type DataIndex = keyof Customs;
     const getColumnSearchProps = (
         dataIndex: DataIndex
-    ): ColumnType<Customer> => ({
+    ): ColumnType<Customs> => ({
         filterDropdown: () => (
             <div onKeyDown={(e) => e.stopPropagation()}>
                 <Input
@@ -88,36 +109,36 @@ const Users: React.FC<{}> = () => {
     });
 
     // columns data
-    const columns: ColumnsType<Customer> = [
+    const columns: ColumnsType<Customs> = [
         {
             title: "ID",
-            dataIndex: "customer_id",
-            key: "customer_id",
+            dataIndex: "customs_id",
+            key: "customs_id",
             width: "28%",
-            ...getColumnSearchProps("customer_id"),
+            ...getColumnSearchProps("customs_id"),
         },
         {
-            title: "User",
-            dataIndex: "name",
-            key: "name",
+            title: "Country",
+            dataIndex: "country_id",
+            key: "country_id",
             width: "15%",
-            ...getColumnSearchProps("name"),
+            ...getColumnSearchProps("country_id"),
         },
         {
-            title: "Address",
-            dataIndex: "address",
-            key: "address",
+            title: "Regulation",
+            dataIndex: "regulation",
+            key: "regulation",
             width: "25%",
 
-            ...getColumnSearchProps("address"),
+            ...getColumnSearchProps("regulation"),
         },
 
         {
-            title: "Phone Number",
-            dataIndex: "phone_number",
-            key: "phone_number",
+            title: "Processing Time",
+            dataIndex: "processing_time",
+            key: "processing_time",
             width: "15%",
-            ...getColumnSearchProps("phone_number"),
+            ...getColumnSearchProps("processing_time"),
         },
         {
             title: "Actions",
@@ -132,7 +153,7 @@ const Users: React.FC<{}> = () => {
                             onClick={() => {
                                 // setOpenDetailPopup(true);
                                 navigate(
-                                    "/admin/user-info/" + record.customer_id,
+                                    "/admin/user-info/" + record.customs_id,
                                     {
                                         state: {
                                             userInfo: record,
@@ -151,6 +172,26 @@ const Users: React.FC<{}> = () => {
         <div className="tableWrapper">
             <div className={styles.heading}>
                 <h2>Users List</h2>
+
+                <select
+                    onChange={(e) => {
+                        setOtherRegion(e.target.value);
+                        getCustomsFromOtherRegions(e.target.value);
+                    }}
+                    defaultValue={currentRegion}
+                >
+                    {regions.map((region) => {
+                        return (
+                            <option
+                                key={region.location}
+                                value={region.id}
+                                disabled={region.id === currentRegion}
+                            >
+                                {region.id.toUpperCase()}
+                            </option>
+                        );
+                    })}
+                </select>
             </div>
 
             <div className="tableContent">

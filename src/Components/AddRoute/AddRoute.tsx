@@ -8,7 +8,8 @@ import { Product } from "../../models/product";
 import ProductForm from "../ProductForm/ProductForm";
 import { Station } from "../../models/Station";
 import http from "../../utils/http";
-const AddProduct: React.FC = () => {
+import RouteForm from "../RouteForm/RouteForm";
+const AddRoute: React.FC = () => {
     const privateHttp = usePrivateHttp();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -17,20 +18,29 @@ const AddProduct: React.FC = () => {
     // post product data to server to add a new product:
     const handleAddProduct = useCallback(async (station: any) => {
         window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-        const { station_id, station_name, address, country_id, otherRegion } =
-            station;
+        const {
+            route_id,
+            station_from,
+            station_to,
+            distance,
+            estimated_time,
+            type,
+            otherRegion,
+        } = station;
         try {
             dispatch(loadingActions.setLoading(true));
             const url =
                 currentRegion.trim().toUpperCase() ===
                 otherRegion.trim().toUpperCase()
-                    ? `/${currentRegion}/insert_table/station`
-                    : `/${currentRegion}/${otherRegion}/insert_table/station`;
+                    ? `/${currentRegion}/insert_table/route`
+                    : `/${currentRegion}/${otherRegion}/insert_table/route`;
             const response = await http.post(url, {
-                station_id,
-                station_name,
-                country_id,
-                address,
+                route_id,
+                station_from,
+                station_to,
+                distance,
+                estimated_time,
+                type,
             });
             dispatch(loadingActions.setLoading(false));
         } catch (error) {
@@ -41,7 +51,7 @@ const AddProduct: React.FC = () => {
     }, []);
 
     // return tsx:
-    return <ProductForm errMess={errMess} handleProductFn={handleAddProduct} />;
+    return <RouteForm errMess={errMess} handleProductFn={handleAddProduct} />;
 };
 
-export default AddProduct;
+export default AddRoute;

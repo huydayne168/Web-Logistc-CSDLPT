@@ -22,6 +22,8 @@ import type { PaginationProps } from "antd";
 import Pagination from "antd/es/pagination";
 import { Popconfirm } from "antd";
 import { Voucher } from "../../models/voucher";
+import { Order } from "../../models/Order";
+import regions from "../../datas/Regions";
 // import DeletePopup from "../DeletePopup/DeletePopup";
 const Vouchers: React.FC = () => {
     const navigate = useNavigate();
@@ -32,48 +34,23 @@ const Vouchers: React.FC = () => {
 
     // search params:
     const [search, setSearch] = useSearchParams();
-
+    const currentRegion = useAppSelector((state) => state.region.id);
     // flash sale:
-    const [vouchers, setVouchers] = useState<Voucher[]>([]);
-
-    // set page pagination:
-    const [currentPage, setCurrentPage] = useState<number>(1);
-    const [totalVouchers, setTotalVouchers] = useState(0);
+    const [orders, setOrders] = useState<Order[]>([]);
 
     const [isDeleting, setIsDeleting] = useState(false);
-
-    // change page with ant pagination
-    const onChangePagination: PaginationProps["onChange"] = useCallback(
-        (page: number) => {
-            setCurrentPage(page);
-        },
-        []
-    );
-    console.log(currentPage);
-
-    // by default set search params page = 1
-    useEffect(() => {
-        search.set("page", currentPage.toString());
-        setSearch(search, {
-            replace: true,
-        });
-    }, [currentPage]);
+    const [otherRegion, setOtherRegion] = useState<string>("");
 
     // get vouchers from database:
     useEffect(() => {
         const getAllVouchers = async () => {
             dispatch(loadingActions.setLoading(true));
             try {
-                const res = await privateHttp.get(
-                    process.env.REACT_APP_SERVER_DOMAIN +
-                        "/api/voucher/get-vouchers",
-                    {
-                        params: search || null,
-                    }
+                const res = await http.get(
+                    `/${currentRegion}/get_tables/orders`
                 );
-                console.log(res.data);
-                setVouchers(res.data.vouchers);
-                setTotalVouchers(res.data.totalVouchers);
+                console.log(res.data.recordset);
+                setOrders(res.data.recordset);
                 dispatch(loadingActions.setLoading(false));
             } catch (error) {
                 console.log(error);
@@ -81,41 +58,42 @@ const Vouchers: React.FC = () => {
         };
         getAllVouchers();
     }, [search, isDeleting]);
+    const getOrderFromOtherRegions = async (region: string) => {
+        dispatch(loadingActions.setLoading(true));
+        try {
+            const res = await http.get(
+                `/${currentRegion}/${region}/get_tables/orders`
+            );
+            console.log(res.data.recordset);
+            dispatch(loadingActions.setLoading(false));
+            setOrders((prev) => res.data.recordset);
+            setOtherRegion(region);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     // delete flash sale handler:
     const deleteHandler = useCallback(
-        async (voucher: Voucher) => {
+        async (order: Order) => {
             dispatch(loadingActions.setLoading(true));
             try {
-                const res = await privateHttp.delete(
-                    "/api/voucher/delete-voucher",
-                    {
-                        params: {
-                            voucherId: voucher._id,
-                        },
-                    }
+                const res = await http.delete(
+                    `/${currentRegion}/delete_table/orders/${order.order_id}`
                 );
-                setVouchers((pre) => {
-                    return pre.filter(
-                        (_voucher) => _voucher._id !== voucher._id
-                    );
-                });
                 dispatch(loadingActions.setLoading(false));
                 setIsDeleting((pre) => !pre);
             } catch (error) {
-                console.log(error);
                 dispatch(loadingActions.setLoading(false));
             }
         },
-        [dispatch, privateHttp]
+        [dispatch, currentRegion]
     );
 
     // ant column:
-    type DataIndex = keyof Voucher;
+    type DataIndex = keyof Order;
     // type Checkouts = [{ product: Checkout; quantity: number }];
-    const getColumnSearchProps = (
-        dataIndex: DataIndex
-    ): ColumnType<Voucher> => ({
+    const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Order> => ({
         filterDropdown: ({}) => (
             <div onKeyDown={(e) => e.stopPropagation()}>
                 <Input
@@ -141,88 +119,37 @@ const Vouchers: React.FC = () => {
         ),
     });
 
-    const columns: ColumnsType<Voucher> = [
+    const columns: ColumnsType<Order> = [
         {
-            title: "Code",
-            dataIndex: "code",
-            key: "code",
+            title: "Id",
+            dataIndex: "order_id",
+            key: "order_id",
             width: "20%",
-            ...getColumnSearchProps("code"),
+            ...getColumnSearchProps("order_id"),
         },
         {
-            title: "Discount",
-            dataIndex: "discountPercent",
-            key: "discountPercent",
+            title: "Customer",
+            dataIndex: "customer_id",
+            key: "customer_id",
             width: "10%",
-            render: (discountPercent) => {
-                return <span>{discountPercent}%</span>;
-            },
         },
         {
-            title: "Remain",
-            dataIndex: "quantity",
-            key: "quantity",
+            title: "Custom",
+            dataIndex: "customs_id",
+            key: "customs_id",
             width: "10%",
-            render: (quantity) => {
-                return <span>{quantity}</span>;
-            },
-            filterDropdown: ({}) => {
-                return (
-                    <div
-                        style={{
-                            padding: "4px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                        }}
-                        onKeyDown={(e) => e.stopPropagation()}
-                    >
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.delete("sortQuantity");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Default
-                        </div>
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortQuantity", "true");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Most
-                        </div>
-
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortQuantity", "false");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Least
-                        </div>
-                    </div>
-                );
-            },
-            filterIcon: () => {
-                return <CaretDownOutlined />;
-            },
+        },
+        {
+            title: "Station",
+            dataIndex: "station_id",
+            key: "station_id",
+            width: "10%",
         },
 
         {
-            title: "End",
-            dataIndex: "end",
-            key: "end",
+            title: "Created At",
+            dataIndex: "created_at",
+            key: "created_at",
             width: "20%",
             render: (end) => {
                 return <span>{end}</span>;
@@ -231,71 +158,9 @@ const Vouchers: React.FC = () => {
 
         {
             title: "Status",
-            dataIndex: "isActive",
-            key: "isActive",
+            dataIndex: "status",
+            key: "status",
             width: "10%",
-            render: (isActive) => {
-                return (
-                    <span>
-                        {isActive ? (
-                            <Tag color="success">Active</Tag>
-                        ) : (
-                            <Tag>Not Available</Tag>
-                        )}
-                    </span>
-                );
-            },
-            filterDropdown: ({}) => {
-                return (
-                    <div
-                        style={{
-                            padding: "4px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                        }}
-                        onKeyDown={(e) => e.stopPropagation()}
-                    >
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.delete("sortActive");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Default
-                        </div>
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortActive", "true");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Active
-                        </div>
-
-                        <div
-                            className={styles["dropdown-item"]}
-                            onClick={() => {
-                                search.set("sortActive", "false");
-                                setSearch(search, {
-                                    replace: true,
-                                });
-                            }}
-                        >
-                            Not Available
-                        </div>
-                    </div>
-                );
-            },
-            filterIcon: () => {
-                return <CaretDownOutlined />;
-            },
         },
 
         {
@@ -304,10 +169,6 @@ const Vouchers: React.FC = () => {
             render: (_, record) => {
                 return (
                     <div style={{ display: "flex", gap: "4px" }}>
-                        <Button icon={<InfoCircleOutlined />} />
-
-                        <Button type="primary" icon={<EditOutlined />} />
-
                         <Popconfirm
                             title="Delete"
                             description="Are you sure to delete this product?"
@@ -315,6 +176,7 @@ const Vouchers: React.FC = () => {
                                 deleteHandler(record);
                             }}
                             okButtonProps={{ loading: isLoading }}
+                            disabled={currentRegion !== otherRegion}
                         >
                             <Button
                                 type="primary"
@@ -332,35 +194,34 @@ const Vouchers: React.FC = () => {
     return (
         <div className="tableWrapper">
             <div className={styles.heading}>
-                <h2>Vouchers List</h2>
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        navigate("/admin/add-voucher");
-                        dispatch(
-                            navigationActions.setNavigationState("add-product")
-                        );
+                <h2>Orders List</h2>
+                <select
+                    onChange={(e) => {
+                        setOtherRegion(e.target.value);
+                        getOrderFromOtherRegions(e.target.value);
                     }}
+                    defaultValue={currentRegion}
                 >
-                    Add New
-                </button>
+                    {regions.map((region) => {
+                        return (
+                            <option
+                                key={region.location}
+                                value={region.id}
+                                disabled={region.id === currentRegion}
+                            >
+                                {region.id.toUpperCase()}
+                            </option>
+                        );
+                    })}
+                </select>
             </div>
             <div className="tableContent">
                 <Table
                     columns={columns}
-                    dataSource={vouchers}
+                    dataSource={orders}
                     pagination={false}
                     loading={isLoading}
                 />
-
-                <div className={styles["pagination"]}>
-                    <Pagination
-                        current={currentPage}
-                        onChange={onChangePagination}
-                        total={totalVouchers}
-                        pageSize={5}
-                    />
-                </div>
             </div>
         </div>
     );

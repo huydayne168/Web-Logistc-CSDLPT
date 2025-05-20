@@ -27,28 +27,7 @@ function SideBar() {
     const currentUserData = useAppSelector((state) => state.authentication);
     const navigationState = useAppSelector((state) => state.navigation);
     const [currentUser, setCurrentUser] = useState<User>();
-
-    // get current User:
-    useEffect(() => {
-        const getCurrentUser = async () => {
-            const res = await http.get("/get-user", {
-                params: {
-                    _id: currentUserData._id,
-                },
-            });
-            setCurrentUser(res.data.foundUser);
-        };
-        getCurrentUser();
-    }, []);
-
-    // logout
-    const logoutHandler = useCallback(async () => {
-        const res = await http.get("/logout", {
-            withCredentials: true,
-        });
-        dispatch(authActions.logout());
-        navigate("/");
-    }, []);
+    const currentRegion = useAppSelector((state) => state.region);
 
     // navigation:
     type MenuItem = Required<MenuProps>["items"][number];
@@ -73,20 +52,21 @@ function SideBar() {
             null,
             "main",
             null,
-            [getItem("Dashboard", "dash-board", <FundOutlined />)],
+            [getItem("Dashboard", "", <FundOutlined />)],
             "group"
         ),
         getItem("List", "list", <UnorderedListOutlined />, [
-            getItem("Customers", "users", <UserOutlined />),
+            getItem("Customers", "customers", <UserOutlined />),
+            getItem("Customs", "users", <UserOutlined />),
             getItem("Shipments", "shipments", <TruckOutlined />),
-            getItem("Routes", "flash-sales", <GatewayOutlined />),
-            getItem("Station", "vouchers", <HomeOutlined />),
-            getItem("Orders", "transactions", <OrderedListOutlined />),
+            getItem("Routes", "routes", <GatewayOutlined />),
+            getItem("Orders", "vouchers", <OrderedListOutlined />),
+            getItem("Station", "stations", <HomeOutlined />),
         ]),
         getItem("New", "new", <AppstoreAddOutlined />, [
-            getItem("Add Product", "add-product"),
-            getItem("Add Flash Sale", "add-flashSale"),
-            getItem("Add Voucher", "add-voucher"),
+            getItem("Add Station", "add-product"),
+            getItem("Add Customer", "add-customer"),
+            getItem("Add Route", "add-route"),
         ]),
     ];
     const [openKeys, setOpenKeys] = useState(["dash-board"]);
@@ -130,7 +110,7 @@ function SideBar() {
                         fill="white"
                     />
                 </svg>
-                {currentUser?.userName ? currentUser.userName : "Admin"}
+                {currentRegion ? currentRegion.id.toUpperCase() : "Admin"}
             </div>
 
             <Space
@@ -146,15 +126,6 @@ function SideBar() {
                     style={{ width: "100%" }}
                     items={items}
                 />
-
-                <Button
-                    type="primary"
-                    block
-                    onClick={logoutHandler}
-                    icon={<LogoutOutlined />}
-                >
-                    Log Out
-                </Button>
             </Space>
         </div>
     );

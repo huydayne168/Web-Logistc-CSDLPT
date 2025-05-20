@@ -3,6 +3,27 @@ import { Product } from "../models/product";
 import { Checkout } from "../models/checkout";
 import { Tag } from "../models/tag";
 
+////// Region State:
+const regionInit = {
+    serverName: "QUANGHUNG2024\\GLOBAL_HUB",
+    linkName: "LINK_GLOBAL",
+    location: "MÁY CHỦ",
+    id: "global",
+};
+
+const regionSlice = createSlice({
+    name: "region",
+    initialState: regionInit,
+    reducers: {
+        setRegionState(state, action) {
+            sessionStorage.setItem("regionState", action.payload);
+            return (state = action.payload);
+        },
+    },
+});
+
+export const regionActions = regionSlice.actions;
+
 ////// Navigation Slice:
 const navigationInit =
     sessionStorage.getItem("navigationState") || "dash-board";
@@ -94,7 +115,7 @@ const tagsSlice = createSlice({
 
 export const tagsActions = tagsSlice.actions;
 
-////// Products store: (this slice is used too manage products and sort products)
+////// Products store: (this slice is used to manage products and sort products)
 
 const intiProducts: Product[] = [];
 
@@ -151,6 +172,7 @@ export const checkoutsAction = checkoutsSlice.actions;
 
 const store = configureStore({
     reducer: {
+        region: regionSlice.reducer,
         navigation: navigationSlice.reducer,
         loading: loadingSlice.reducer,
         authentication: authentication.reducer,

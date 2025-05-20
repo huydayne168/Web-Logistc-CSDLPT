@@ -1,6 +1,6 @@
 export type Station = {
-    station_id: string;
-    region_code: string;
+    address: string;
+    country_id: string;
     station_name: string;
-    location: string;
+    station_id: string;
 };

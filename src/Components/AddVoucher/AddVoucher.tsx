@@ -146,13 +146,6 @@ const AddVoucher: React.FC<{}> = () => {
                         />
                     </Form.Item>
 
-                    <Form.Item label="Time End">
-                        <DatePicker
-                            showTime={{ format: "HH:mm" }}
-                            onChange={timeHandler}
-                        />
-                    </Form.Item>
-
                     <Form.Item>
                         <Button
                             type="primary"

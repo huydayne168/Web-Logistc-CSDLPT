@@ -1,82 +1,76 @@
 import React, { useState, useEffect, useCallback } from "react";
-import styles from "./transaction.module.css";
-import usePrivateHttp from "../../hooks/usePrivateHttp";
-import { useSearchParams } from "react-router-dom";
-import type { PaginationProps } from "antd";
-import Pagination from "antd/es/pagination";
-import type { ColumnType, ColumnsType } from "antd/es/table";
-import { Input, Table, Button, Dropdown, Tag, Popconfirm } from "antd";
-import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
-import {
-    SearchOutlined,
-    CaretDownOutlined,
-    DeleteOutlined,
-    InfoCircleOutlined,
-} from "@ant-design/icons";
-import { checkoutsAction, loadingActions } from "../../store/store";
-import { Checkout } from "../../models/checkout";
-import { Product } from "../../models/product";
-import type { MenuProps } from "antd/es/menu";
-import TransactionDetail from "./TransactionDetail";
-import http from "../../utils/http";
-import { Route } from "../../models/Route";
-import regions from "../../datas/Regions";
-function Transactions() {
-    const checkouts = useAppSelector((state) => state.checkouts);
-    const dispatch = useAppDispatch();
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalCheckouts, setTotalCheckouts] = useState(0);
-    const [selectCheckout, setSelectCheckout] = useState<Route | null>(null);
-    const [openDetailPopup, setOpenDetailPopup] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const isLoading = useAppSelector((state) => state.loading);
-    const [search, setSearch] = useSearchParams();
-    const privateHttp = usePrivateHttp();
-    const [routes, setRoutes] = useState<Route[]>([]);
-    const currentRegion = useAppSelector((state) => state.region.id);
-    const [otherRegion, setOtherRegion] = useState<string>("");
+import styles from "./vouchers.module.css";
 
-    // get all routes here:
+import http from "../../utils/http";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
+import { navigationActions } from "../../store/store";
+import { loadingActions } from "../../store/store";
+import usePrivateHttp from "../../hooks/usePrivateHttp";
+// ant design:
+import type { ColumnType, ColumnsType } from "antd/es/table";
+import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Input, Table, Button, Dropdown, Tag, Alert } from "antd";
+import { Popconfirm } from "antd";
+import { Order } from "../../models/Order";
+import { Station } from "../../models/Station";
+import regions from "../../datas/Regions";
+// import DeletePopup from "../DeletePopup/DeletePopup";
+const Stations: React.FC = () => {
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+    const privateHttp = usePrivateHttp();
+    // isLoading state:
+    const isLoading = useAppSelector((state) => state.loading);
+
+    // search params:
+    const [search, setSearch] = useSearchParams();
+    const currentRegion = useAppSelector((state) => state.region.id);
+    // flash sale:
+    const [stations, setStations] = useState<Station[]>([]);
+
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [otherRegion, setOtherRegion] = useState<string>("");
+    // get vouchers from database:
     useEffect(() => {
-        const getCheckouts = async () => {
+        const getAllVouchers = async () => {
             dispatch(loadingActions.setLoading(true));
             try {
                 const res = await http.get(
-                    `/${currentRegion}/get_tables/route`
+                    `/${currentRegion}/get_tables/station`
                 );
                 console.log(res.data.recordset);
-                setRoutes(res.data.recordset);
+                setStations(res.data.recordset);
                 dispatch(loadingActions.setLoading(false));
             } catch (error) {
                 console.log(error);
             }
         };
-
-        getCheckouts();
+        getAllVouchers();
     }, [search, isDeleting]);
 
-    const getRouteFromOtherRegions = async (region: string) => {
+    const getOrderFromOtherRegions = async (region: string) => {
         dispatch(loadingActions.setLoading(true));
         try {
             const res = await http.get(
-                `/${currentRegion}/${region}/get_tables/route`
+                `/${currentRegion}/${region}/get_tables/station`
             );
             console.log(res.data.recordset);
             dispatch(loadingActions.setLoading(false));
-            setRoutes((prev) => res.data.recordset);
+            setStations((prev) => res.data.recordset);
             setOtherRegion(region);
         } catch (error) {
             console.log(error);
         }
     };
 
-    // delete checkout handler:
+    // delete flash sale handler:
     const deleteHandler = useCallback(
-        async (route: Route) => {
+        async (station: Station) => {
             dispatch(loadingActions.setLoading(true));
             try {
                 const res = await http.delete(
-                    `/${currentRegion}/delete_table/route/${route.route_id}`
+                    `/${currentRegion}/delete_table/station/${station.station_id}`
                 );
                 dispatch(loadingActions.setLoading(false));
                 setIsDeleting((pre) => !pre);
@@ -87,10 +81,12 @@ function Transactions() {
         [dispatch, currentRegion]
     );
 
-    // Column type:
-    type DataIndex = keyof Route;
-    type Products = [{ product: Product; quantity: number }];
-    const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Route> => ({
+    // ant column:
+    type DataIndex = keyof Station;
+    // type Checkouts = [{ product: Checkout; quantity: number }];
+    const getColumnSearchProps = (
+        dataIndex: DataIndex
+    ): ColumnType<Station> => ({
         filterDropdown: ({}) => (
             <div onKeyDown={(e) => e.stopPropagation()}>
                 <Input
@@ -116,59 +112,39 @@ function Transactions() {
         ),
     });
 
-    // columns data
-    const columns: ColumnsType<Route> = [
+    const columns: ColumnsType<Station> = [
         {
-            title: "ID",
-            dataIndex: "route_id",
-            key: "route_id",
+            title: "Id",
+            dataIndex: "station_id",
+            key: "station_id",
             width: "15%",
+            ...getColumnSearchProps("station_id"),
         },
         {
-            title: "From",
-            dataIndex: "station_from",
-            key: "station_from",
-            width: "15%",
-            ...getColumnSearchProps("station_from"),
+            title: "Station Name",
+            dataIndex: "station_name",
+            key: "station_name",
+            width: "20%",
         },
         {
-            title: "To",
-            dataIndex: "station_to",
-            key: "station_to",
-            width: "25%",
-            ...getColumnSearchProps("station_to"),
+            title: "Address",
+            dataIndex: "address",
+            key: "address",
+            width: "20%",
         },
-
         {
-            title: "Distance",
-            dataIndex: "distance",
-            key: "distance",
-            width: "15%",
-            ...getColumnSearchProps("distance"),
-        },
-
-        {
-            title: "Type",
-            dataIndex: "type",
-            key: "type",
+            title: "Country",
+            dataIndex: "country_id",
+            key: "country_id",
             width: "10%",
         },
 
         {
             title: "Actions",
-            width: "20%",
-            dataIndex: "actions",
-            key: "actions",
+            width: "8%",
             render: (_, record) => {
                 return (
                     <div style={{ display: "flex", gap: "4px" }}>
-                        <Button
-                            icon={<InfoCircleOutlined />}
-                            onClick={() => {
-                                setSelectCheckout(record);
-                                setOpenDetailPopup(true);
-                            }}
-                        />
                         <Popconfirm
                             title="Delete"
                             description="Are you sure to delete this product?"
@@ -190,17 +166,15 @@ function Transactions() {
         },
     ];
 
-    const closePopup = useCallback(() => {
-        setOpenDetailPopup(false);
-    }, []);
+    // Return tsx:
     return (
         <div className="tableWrapper">
             <div className={styles.heading}>
-                <h2>Routes List</h2>
+                <h2>Stations List</h2>
                 <select
                     onChange={(e) => {
                         setOtherRegion(e.target.value);
-                        getRouteFromOtherRegions(e.target.value);
+                        getOrderFromOtherRegions(e.target.value);
                     }}
                     defaultValue={currentRegion}
                 >
@@ -220,18 +194,13 @@ function Transactions() {
             <div className="tableContent">
                 <Table
                     columns={columns}
-                    dataSource={routes}
+                    dataSource={stations}
                     pagination={false}
                     loading={isLoading}
-                />
-                <TransactionDetail
-                    open={openDetailPopup}
-                    checkout={[selectCheckout]}
-                    closePopup={closePopup}
                 />
             </div>
         </div>
     );
-}
+};
 
-export default Transactions;
+export default Stations;

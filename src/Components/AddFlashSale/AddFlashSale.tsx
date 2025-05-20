@@ -18,7 +18,6 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
 import http from "../../utils/http";
 import type { PaginationProps } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
-import type { CheckboxValueType } from "antd/es/checkbox/Group";
 import Pagination from "antd/es/pagination";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { productsAction } from "../../store/store";
