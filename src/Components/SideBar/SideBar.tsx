@@ -65,7 +65,7 @@ function SideBar() {
         ]),
         getItem("New", "new", <AppstoreAddOutlined />, [
             getItem("Add Station", "add-product"),
-            getItem("Add Customer", "add-customer"),
+            getItem("Add Order", "add-customer"),
             getItem("Add Route", "add-route"),
         ]),
     ];

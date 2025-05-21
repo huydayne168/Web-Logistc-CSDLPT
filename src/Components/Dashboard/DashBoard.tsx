@@ -2,13 +2,14 @@ import { useState } from "react";
 import RegionCardCustom from "./RegionCardCustom";
 import styles from "./dashboard.module.css";
 import regions from "../../datas/Regions";
-import { useAppDispatch } from "../../hooks/useStore";
+import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
 import { regionActions } from "../../store/store";
 import RegionData from "../../models/Region";
 
 export default function CustomRegionPage() {
     const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
     const dispatch = useAppDispatch();
+    const currentRegion = useAppSelector((state) => state.region.id);
 
     const handleSelectRegion = (region: RegionData) => {
         setSelectedRegion(region.location);
@@ -26,7 +27,7 @@ export default function CustomRegionPage() {
                         serverName={region.serverName}
                         linkName={region.linkName}
                         location={region.location}
-                        isSelected={selectedRegion === region.location}
+                        isSelected={currentRegion === region.id}
                         onSelect={() => handleSelectRegion(region)}
                     />
                 ))}

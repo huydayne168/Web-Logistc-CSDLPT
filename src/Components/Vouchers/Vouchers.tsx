@@ -124,7 +124,7 @@ const Vouchers: React.FC = () => {
             title: "Id",
             dataIndex: "order_id",
             key: "order_id",
-            width: "20%",
+            width: "5%",
             ...getColumnSearchProps("order_id"),
         },
         {
@@ -147,9 +147,31 @@ const Vouchers: React.FC = () => {
         },
 
         {
+            title: "Amount",
+            dataIndex: "amount",
+            key: "amount",
+            width: "10%",
+        },
+        {
+            title: "Total Weight",
+            dataIndex: "total_weight",
+            key: "total_weight",
+            width: "10%",
+        },
+
+        {
             title: "Created At",
             dataIndex: "created_at",
             key: "created_at",
+            width: "20%",
+            render: (end) => {
+                return <span>{end}</span>;
+            },
+        },
+        {
+            title: "Expected Delivery",
+            dataIndex: "expected_delivery",
+            key: "expected_delivery",
             width: "20%",
             render: (end) => {
                 return <span>{end}</span>;
